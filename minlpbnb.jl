@@ -1,6 +1,7 @@
 #!/usr/bin/env julia
 
 using ArgParse
+
 using MINLPBnB
 using Ipopt
 
@@ -9,6 +10,7 @@ include("common.jl")
 function main(parsed_args) 
     include(parsed_args["file"])
     # this adds a model named m to the current scope
+
 
     nlp_solver_args = Dict{Symbol,Any}()
     nlp_solver_args[:print_level] = 0
@@ -19,10 +21,9 @@ function main(parsed_args)
     #end
     nlp_solver = IpoptSolver(; nlp_solver_args...)
 
-
     solver_args = Dict{Symbol,Any}()
     if parsed_args["time-limit"] != nothing
-        solver_args[:time_limit] = parse(Float64, parsed_args["time-limit"])
+        solver_args[:time_limit] = parsed_args["time-limit"]
     end
 
     solver = MINLPBnBSolver(nlp_solver; solver_args...)
@@ -30,16 +31,7 @@ function main(parsed_args)
 
     status = solve(m)
 
-    data = [
-        "DATA",
-        parsed_args["file"],
-        getobjectivevalue(m),
-        getobjbound(m),
-        getobjgap(m),
-        getsolvetime(m),
-        status
-    ]
-    println(join(data, ", "))
+    print_result(m, status, parsed_args["file"])
 end
 
 if isinteractive() == false

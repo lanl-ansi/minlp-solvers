@@ -1,3 +1,5 @@
+couenne.opt
+
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
