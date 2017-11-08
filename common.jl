@@ -15,9 +15,17 @@ end
 
 function print_result(m, status, file_path)
     file_name = split(file_path, '/')[end]
+
+    nbin = sum(m.colCat .== :Bin)
+    nint = sum(m.colCat .== :Int)
+
     data = [
         "DATA",
         file_name,
+        MathProgBase.numvar(m),
+        nbin,
+        nint,
+        MathProgBase.numconstr(m),
         getobjectivesense(m),
         getobjectivevalue(m),
         status,
@@ -25,5 +33,6 @@ function print_result(m, status, file_path)
         #getobjgap(m),
         getsolvetime(m)
     ]
+
     println(join(data, ", "))
 end
