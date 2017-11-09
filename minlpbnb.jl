@@ -2,12 +2,9 @@
 
 using ArgParse
 
-using MINLPBnB
-using Ipopt
-
 include("common.jl")
 
-function main(parsed_args) 
+function main(parsed_args)
     include(parsed_args["file"])
     # this adds a model named m to the current scope
 
@@ -39,10 +36,8 @@ function main(parsed_args)
     end
 
     if parsed_args["processors"] != nothing
-        addprocs(parsed_args["processors"])
         solver_args[:processors] = parsed_args["processors"]
     end
-
 
 
     solver = MINLPBnBSolver(nlp_solver; solver_args...)
@@ -52,6 +47,7 @@ function main(parsed_args)
 
     print_result(m, status, parsed_args["file"])
 end
+
 
 function parse_commandline_bnb()
     s = ArgParseSettings()
@@ -78,6 +74,14 @@ function parse_commandline_bnb()
     return parse_args(s)
 end
 
+
 if isinteractive() == false
-  main(parse_commandline_bnb())
+    args = parse_commandline_bnb()
+    if args["processors"] != nothing
+        addprocs(args["processors"])
+    end
+    using MINLPBnB
+    using Ipopt
+    main(args)
 end
+
