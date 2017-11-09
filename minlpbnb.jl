@@ -57,7 +57,7 @@ function parse_commandline_bnb()
             help = "the minlplib data file (.jl)"
             required = true
         "--time-limit", "-t"
-            help = "puts a time limit on the sovler"
+            help = "puts a time limit on the solver"
             arg_type = Float64
         "--branch_strategy"
             help = "branch strategy"
@@ -67,7 +67,7 @@ function parse_commandline_bnb()
         "--traverse_strategy"
             help = "traverse strategy"
         "--processors", "-p"
-            help = "traverse strategy"
+            help = "number of parallel processes to use"
             arg_type = Int
     end
 
