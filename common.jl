@@ -19,6 +19,13 @@ function print_result(m, status, file_path)
     nbin = sum(m.colCat .== :Bin)
     nint = sum(m.colCat .== :Int)
 
+    objbound = NaN
+    try
+        objbound = getobjbound(m)
+    catch
+        warn("the solver does not implement getobjbound")
+    end
+
     data = [
         "DATA",
         file_name,
@@ -28,6 +35,7 @@ function print_result(m, status, file_path)
         MathProgBase.numconstr(m),
         getobjectivesense(m),
         getobjectivevalue(m),
+        objbound,
         status,
         #getobjbound(m),
         #getobjgap(m),
