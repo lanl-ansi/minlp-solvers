@@ -37,8 +37,6 @@ function print_result(m, status, file_path)
         getobjectivevalue(m),
         objbound,
         status,
-        #getobjbound(m),
-        #getobjgap(m),
         getsolvetime(m)
     ]
 
