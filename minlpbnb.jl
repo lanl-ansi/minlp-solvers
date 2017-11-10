@@ -84,4 +84,3 @@ if isinteractive() == false
     using Ipopt
     main(args)
 end
-
