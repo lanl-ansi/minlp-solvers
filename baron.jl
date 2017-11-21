@@ -20,6 +20,9 @@ function parse_commandline_baron()
         "--time-limit", "-t"
             help = "puts a time limit on the sovler"
             arg_type = Float64
+        "--print-level", "-o"
+            help = "controls terminal output verbosity"
+            arg_type = Int64
     end
 
     return parse_args(s)
@@ -27,19 +30,30 @@ end
 
 
 function main(parsed_args)
-
     m = include(parsed_args["file"])
     # this adds a model named m to the current scope
 
-    # By default, always run with CPLEX
-    parsed_args["cpxlib"] != nothing ? cpxlib = parsed_args["cpxlib"] : cpxlib = "libcplex1271.so"
+    baron_args = Dict{Symbol,Any}()
+
+    # by default, always run with ...
+    baron_args[:LPSol] = 3
+
+    # by default, always run with CPLEX
+    baron_args[:CplexLibName] = "libcplex1271.so"
+
+    if parsed_args["cpxlib"] != nothing
+        baron_args[:CplexLibName] = parsed_args["cpxlib"]
+    end
 
     if parsed_args["time-limit"] != nothing
-        tl = parsed_args["time-limit"]
-        solver = BaronSolver(LPSol=3, CplexLibName=cpxlib, MaxTime=tl)
-    else
-        solver = BaronSolver(LPSol=3, CplexLibName=cpxlib)
+        baron_args[:MaxTime] = parsed_args["time-limit"]
     end
+
+    if parsed_args["print-level"] != nothing
+        warn("print-level is not currently used by this solver interface")
+    end
+
+    solver = BaronSolver(; baron_args...)
 
     setsolver(m, solver)
     status = solve(m)

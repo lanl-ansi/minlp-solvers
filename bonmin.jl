@@ -11,14 +11,18 @@ function main(parsed_args)
     include(parsed_args["file"])
     # this adds a model named m to the current scope
 
+    optoins = []
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
-        solver = BonminNLSolver(["bonmin.time_limit=$(tl)"])
-        #solver = BonminNLSolver(["bonmin.time_limit=$(tl)", "max_cpu_time=$(tl)", "bonmin.nlp_log_level=2", "bonmin.bb_log_level=5", "bonmin.bb_log_interval=1", "print_level=5"])
-    else
-        solver = BonminNLSolver()
+        append!(optoins, "bonmin.time_limit=$(tl)")
     end
 
+    if parsed_args["print-level"] != nothing
+        pl = parsed_args["print-level"]
+        append!(optoins, "print_level=$(pl)")
+    end
+
+    solver = BonminNLSolver(optoins)
     setsolver(m, solver)
 
     status = solve(m)

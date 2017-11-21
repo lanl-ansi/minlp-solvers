@@ -8,6 +8,9 @@ function parse_commandline()
         "--time-limit", "-t"
             help = "puts a time limit on the sovler"
             arg_type = Float64
+        "--print-level", "-o"
+            help = "controls terminal output verbosity"
+            arg_type = Int64
     end
 
     return parse_args(s)

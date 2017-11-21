@@ -10,12 +10,14 @@ function main(parsed_args)
 
 
     nlp_solver_args = Dict{Symbol,Any}()
-    nlp_solver_args[:print_level] = 0
 
-    #nlp_solver_args[:tol] = 1e-6
-    #if parsed_args["hsl"]
-    #    nlp_solver_args[:linear_solver] = "ma57"
-    #end
+    if parsed_args["print-level"] != nothing
+        nlp_solver_args[:print_level] = parsed_args["print-level"]
+    else
+        nlp_solver_args[:print_level] = 0
+    end
+
+
     nlp_solver = IpoptSolver(; nlp_solver_args...)
 
     solver_args = Dict{Symbol,Any}()
@@ -59,6 +61,9 @@ function parse_commandline_bnb()
         "--time-limit", "-t"
             help = "puts a time limit on the solver"
             arg_type = Float64
+        "--print-level", "-o"
+            help = "controls terminal output verbosity"
+            arg_type = Int64
         "--branch_strategy"
             help = "branch strategy"
         "--strong_restart"
