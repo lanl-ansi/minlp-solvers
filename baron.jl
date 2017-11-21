@@ -50,7 +50,7 @@ function main(parsed_args)
     end
 
     if parsed_args["print-level"] != nothing
-        warn("print-level is not currently used by this solver interface")
+        baron_args[:PrLevel] = parsed_args["print-level"]
     end
 
     solver = BaronSolver(; baron_args...)
