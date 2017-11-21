@@ -11,16 +11,16 @@ function main(parsed_args)
     include(parsed_args["file"])
     # this adds a model named m to the current scope
 
-    lines = []
+    lines = String[]
 
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
-        append!(lines, "time_limit $(tl)")
+        append!(lines, ["time_limit $(tl)"])
     end
 
     if parsed_args["print-level"] != nothing
         pl = parsed_args["print-level"]
-        append!(lines, "print_level $(pl)")
+        append!(lines, ["print_level $(pl)"])
     end
 
     # WARNING this is not parrallel safe
