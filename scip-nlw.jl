@@ -13,6 +13,7 @@ function main(parsed_args)
     lines = String[]
 
     append!(lines, ["heuristics/subnlp/nlpoptfile = \"ipopt.opt\""])
+    append!(lines, ["limits/gap = 1e-4"])
 
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]

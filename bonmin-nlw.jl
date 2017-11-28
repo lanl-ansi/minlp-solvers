@@ -11,6 +11,8 @@ function main(parsed_args)
     # this adds a model named m to the current scope
 
     optoins = String[]
+    append!(optoins, ["bonmin.allowable_fraction_gap=1e-4"])
+
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
         append!(optoins, ["bonmin.time_limit=$(tl)"])
