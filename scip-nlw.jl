@@ -12,6 +12,8 @@ function main(parsed_args)
 
     lines = String[]
 
+    append!(lines, ["heuristics/subnlp/nlpoptfile = \"ipopt.opt\""])
+
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
         append!(lines, ["limits/time = $(tl)"])
@@ -23,7 +25,7 @@ function main(parsed_args)
     end
 
     # WARNING this is not parrallel safe
-    open("scip.opt", "w") do f
+    open("scip.set", "w") do f
         for line in lines
             write(f, "$(line) \n")
         end
