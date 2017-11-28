@@ -1,4 +1,5 @@
 couenne.opt
+scip.set
 
 *.jl.cov
 *.jl.*.cov
