@@ -5,6 +5,12 @@ using ArgParse
 include("common.jl")
 
 function main(parsed_args)
+    # julia compilation step
+    include("data/ex1223a.jl")
+    solver = MINLPBnBSolver(IpoptSolver(print_level=0))
+    setsolver(m, solver)
+    status = solve(m)
+
     include(parsed_args["file"])
     # this adds a model named m to the current scope
 
