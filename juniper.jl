@@ -39,6 +39,18 @@ function main(parsed_args)
         solver_args[:incumbent_constr] = false
     end
 
+    if parsed_args["fp_cbc"] 
+        solver_args[:feasibility_pump] = true
+        solver_args[:feasibility_pump_time_limit] = 30
+        solver_args[:mip_solver] = CbcSolver()
+    end
+
+    if parsed_args["fp_grb"]
+        solver_args[:feasibility_pump] = true
+        solver_args[:feasibility_pump_time_limit] = 30
+        solver_args[:mip_solver] = GurobiSolver(OutputFlag=0)
+    end
+
     if parsed_args["processors"] != nothing
         solver_args[:processors] = parsed_args["processors"]
     end
@@ -81,6 +93,12 @@ function parse_commandline_bnb()
             action = :store_true
         "--traverse_strategy"
             help = "traverse strategy"
+        "--fp_cbc"
+            help = "feasibility pump using cbc"
+            action = :store_true
+        "--fp_grb"
+            help = "feasibility pump using gurobi"
+            action = :store_true
         "--processors", "-p"
             help = "number of parallel processes to use"
             arg_type = Int
@@ -98,5 +116,7 @@ if isinteractive() == false
     using JuMP
     using Juniper
     using Ipopt
+    using Cbc
+    using Gurobi
     main(args)
 end
