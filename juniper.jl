@@ -35,6 +35,10 @@ function main(parsed_args)
         solver_args[:traverse_strategy] = Symbol(parsed_args["traverse_strategy"])
     end
 
+    if parsed_args["no_incumbent_constr"]
+        solver_args[:incumbent_constr] = false
+    end
+
     if parsed_args["processors"] != nothing
         solver_args[:processors] = parsed_args["processors"]
     end
@@ -67,6 +71,9 @@ function parse_commandline_bnb()
         "--print-level", "-o"
             help = "controls terminal output verbosity"
             arg_type = Int64
+        "--no_incumbent_constr"
+            help = "incumbent constraint option"
+            action = :store_true
         "--branch_strategy"
             help = "branch strategy"
         "--no_strong_restart"
