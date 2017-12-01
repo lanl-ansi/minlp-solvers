@@ -1,9 +1,9 @@
 #!/usr/bin/env julia
-using JuMP
+
 using ArgParse
 
+using JuMP
 using BARON
-
 
 include("common.jl")
 

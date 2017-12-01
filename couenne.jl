@@ -2,6 +2,7 @@
 
 using ArgParse
 
+using JuMP
 using AmplNLWriter
 using CoinOptServices
 

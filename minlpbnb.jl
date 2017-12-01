@@ -88,6 +88,7 @@ if isinteractive() == false
     if args["processors"] != nothing
         addprocs(args["processors"])
     end
+    using JuMP
     using MINLPBnB
     using Ipopt
     main(args)
