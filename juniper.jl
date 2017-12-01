@@ -39,7 +39,7 @@ function main(parsed_args)
         solver_args[:processors] = parsed_args["processors"]
     end
 
-    solver = MINLPBnBSolver(nlp_solver; solver_args...)
+    solver = JuniperSolver(nlp_solver; solver_args...)
 
     # julia compilation step
     include("data/ex1223a.jl")
@@ -89,7 +89,7 @@ if isinteractive() == false
         addprocs(args["processors"])
     end
     using JuMP
-    using MINLPBnB
+    using Juniper
     using Ipopt
     main(args)
 end
