@@ -41,13 +41,13 @@ function main(parsed_args)
 
     if parsed_args["fp_cbc"] 
         solver_args[:feasibility_pump] = true
-        solver_args[:feasibility_pump_time_limit] = 30
+        solver_args[:feasibility_pump_time_limit] = 60
         solver_args[:mip_solver] = CbcSolver()
     end
 
     if parsed_args["fp_grb"]
         solver_args[:feasibility_pump] = true
-        solver_args[:feasibility_pump_time_limit] = 30
+        solver_args[:feasibility_pump_time_limit] = 60
         solver_args[:mip_solver] = GurobiSolver(OutputFlag=0)
     end
 
