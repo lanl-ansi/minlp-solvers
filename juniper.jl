@@ -17,7 +17,13 @@ function main(parsed_args)
     nlp_solver = IpoptSolver(; nlp_solver_args...)
 
     solver_args = Dict{Symbol,Any}()
-    #solver_args[:log_levels] = [:Options, :Info, :Table]
+
+    if !parsed_args["no_fp"]
+        solver_args[:mip_solver] = CbcSolver()
+        if parsed_args["fp_grb"]
+            solver_args[:mip_solver] = GurobiSolver(OutputFlag=0)
+        end
+    end
 
     if parsed_args["time-limit"] != nothing
         solver_args[:time_limit] = parsed_args["time-limit"]
@@ -35,20 +41,8 @@ function main(parsed_args)
         solver_args[:traverse_strategy] = Symbol(parsed_args["traverse_strategy"])
     end
 
-    if parsed_args["no_incumbent_constr"]
-        solver_args[:incumbent_constr] = false
-    end
-
-    if parsed_args["fp_cbc"] 
-        solver_args[:feasibility_pump] = true
-        solver_args[:feasibility_pump_time_limit] = 300
-        solver_args[:mip_solver] = CbcSolver()
-    end
-
-    if parsed_args["fp_grb"]
-        solver_args[:feasibility_pump] = true
-        solver_args[:feasibility_pump_time_limit] = 300
-        solver_args[:mip_solver] = GurobiSolver(OutputFlag=0)
+    if parsed_args["incumbent_constr"]
+        solver_args[:incumbent_constr] = true
     end
 
     if parsed_args["processors"] != nothing
@@ -83,7 +77,7 @@ function parse_commandline_bnb()
         "--print-level", "-o"
             help = "controls terminal output verbosity"
             arg_type = Int64
-        "--no_incumbent_constr"
+        "--incumbent_constr"
             help = "incumbent constraint option"
             action = :store_true
         "--branch_strategy"
@@ -93,8 +87,8 @@ function parse_commandline_bnb()
             action = :store_true
         "--traverse_strategy"
             help = "traverse strategy"
-        "--fp_cbc"
-            help = "feasibility pump using cbc"
+        "--no_fp"
+            help = "no feasibility pump"
             action = :store_true
         "--fp_grb"
             help = "feasibility pump using gurobi"
