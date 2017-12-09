@@ -16,6 +16,7 @@ function main(parsed_args)
 
     append!(optoins, ["ms_enable=1"])
     append!(optoins, ["ms_maxsolves=3"])
+    append!(optoins, ["mip_heuristic=2"])   
 
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
