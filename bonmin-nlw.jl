@@ -13,6 +13,7 @@ function main(parsed_args)
 
     optoins = String[]
     append!(optoins, ["bonmin.allowable_fraction_gap=1e-4"])
+    append!(optoins, ["bonmin.num_resolve_at_root=3"])
 
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
