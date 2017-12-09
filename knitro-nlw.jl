@@ -14,6 +14,9 @@ function main(parsed_args)
     optoins = String[]
     append!(optoins, ["mip_integral_gap_rel=1e-4"])
 
+    append!(optoins, ["ms_enable=1"])
+    append!(optoins, ["ms_maxsolves=3"])
+
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
         append!(optoins, ["mip_maxtime_real=$(tl)"])
