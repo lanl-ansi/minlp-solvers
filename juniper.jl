@@ -7,19 +7,31 @@ include("common.jl")
 function main(parsed_args)
     nlp_solver_args = Dict{Symbol,Any}()
 
-    if parsed_args["print-level"] != nothing
-        nlp_solver_args[:print_level] = parsed_args["print-level"]
+    if !parsed_args["knitro"]
+        if parsed_args["print-level"] != nothing
+            nlp_solver_args[:print_level] = parsed_args["print-level"]
+        else
+            nlp_solver_args[:print_level] = 0
+        end
+
+        nlp_solver = IpoptSolver(; nlp_solver_args...)
     else
-        nlp_solver_args[:print_level] = 0
+        if parsed_args["print-level"] != nothing
+            nlp_solver_args[:KTR_PARAM_OUTLEV] = parsed_args["print-level"]
+        else
+            nlp_solver_args[:KTR_PARAM_OUTLEV] = 0
+        end
+
+        nlp_solver = KnitroSolver(; nlp_solver_args...)
     end
-
-
-    nlp_solver = IpoptSolver(; nlp_solver_args...)
 
     solver_args = Dict{Symbol,Any}()
 
     if !parsed_args["no_fp"]
         solver_args[:mip_solver] = CbcSolver()
+        if parsed_args["fp_glpk"]
+            solver_args[:mip_solver] = GLPKSolverMIP()
+        end
         if parsed_args["fp_grb"]
             solver_args[:mip_solver] = GurobiSolver(OutputFlag=0)
         end
@@ -90,8 +102,14 @@ function parse_commandline_bnb()
         "--no_fp"
             help = "no feasibility pump"
             action = :store_true
+        "--fp_glpk"
+            help = "feasibility pump using glpk"
+            action = :store_true
         "--fp_grb"
             help = "feasibility pump using gurobi"
+            action = :store_true
+        "--knitro"
+            help = "use knitro as the nlp solver"
             action = :store_true
         "--processors", "-p"
             help = "number of parallel processes to use"
@@ -111,6 +129,8 @@ if isinteractive() == false
     using Juniper
     using Ipopt
     using Cbc
+    using GLPKMathProgInterface
     using Gurobi
+    using KNITRO
     main(args)
 end
