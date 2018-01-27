@@ -15,6 +15,13 @@ function main(parsed_args)
     append!(optoins, ["--obj_gap_percent"])
     append!(optoins, ["1e-2"])
 
+    # seems to break things
+    #append!(optoins, ["--fpump"])
+    #append!(optoins, ["1"])
+
+    #append!(optoins, ["--msbnb_restarts"])
+    #append!(optoins, ["0"])
+
     if parsed_args["time-limit"] != nothing
         tl = parsed_args["time-limit"]
         append!(optoins, ["--bnb_time_limit"])
