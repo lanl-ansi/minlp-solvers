@@ -12,4 +12,6 @@
 ../bonmin-nlw.jl -f data/ex1223a.jl > /dev/null
 ../couenne-nlw.jl -f data/ex1223a.jl > /dev/null
 ../scip-nlw.jl -f data/ex1223a.jl > /dev/null
+../minotaur-bnb-nlw.jl -f data/ex1223a.jl > /dev/null
+../minotaur-msbnb-nlw.jl -f data/ex1223a.jl > /dev/null
 ../knitro-nlw.jl -f data/ex1223a.jl > /dev/null
