@@ -15,6 +15,9 @@ function main(parsed_args)
     append!(optoins, ["--obj_gap_percent"])
     append!(optoins, ["1e-2"])
 
+    #append!(optoins, ["--nlp_engine"])
+    #append!(optoins, ["IPOPT"])
+
     # seems to break things
     #append!(optoins, ["--fpump"])
     #append!(optoins, ["1"])
