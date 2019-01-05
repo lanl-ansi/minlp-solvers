@@ -1,3 +1,5 @@
+using MathProgBase
+
 function parse_commandline()
     s = ArgParseSettings()
 

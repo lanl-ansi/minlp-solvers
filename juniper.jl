@@ -130,7 +130,7 @@ if isinteractive() == false
     using Ipopt
     using Cbc
     using GLPKMathProgInterface
-    using Gurobi
-    using KNITRO
+    #using Gurobi
+    #using KNITRO
     main(args)
 end
