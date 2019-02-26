@@ -7,10 +7,10 @@ m = Model()
 
 #define variables and bounds
 @variable(m, x[1:7])
-setcategory(x[4], :Bin)
-setcategory(x[5], :Bin)
-setcategory(x[6], :Int)
-setcategory(x[7], :Bin)
+set_binary(x[4])
+set_binary(x[5])
+set_integer(x[6])
+set_binary(x[7])
 
 @constraint(m, x[1] >= 0.0)
 @constraint(m, x[1] <= 10.0)
