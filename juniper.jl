@@ -14,7 +14,7 @@ function main(parsed_args)
             nlp_solver_args[:print_level] = 0
         end
 
-        nlp_solver = IpoptSolver(; nlp_solver_args...)
+        nlp_solver = with_optimizer(Ipopt.Optimizer; nlp_solver_args...)
     else
         if parsed_args["print-level"] != nothing
             nlp_solver_args[:KTR_PARAM_OUTLEV] = parsed_args["print-level"]
@@ -28,7 +28,7 @@ function main(parsed_args)
     solver_args = Dict{Symbol,Any}()
 
     if !parsed_args["no_fp"]
-        solver_args[:mip_solver] = CbcSolver()
+        solver_args[:mip_solver] = with_optimizer(Cbc.Optimizer, logLevel=0)
         if parsed_args["fp_glpk"]
             solver_args[:mip_solver] = GLPKSolverMIP()
         end
@@ -61,16 +61,22 @@ function main(parsed_args)
         solver_args[:processors] = parsed_args["processors"]
     end
 
-    solver = JuniperSolver(nlp_solver; solver_args...)
+    #solver = JuniperSolver(nlp_solver; solver_args...)
+
+    solver = with_optimizer(
+        Juniper.Optimizer,
+        nl_solver=nlp_solver;
+        solver_args...
+    )
 
     # julia compilation step
     include("data/ex1223a.jl")
-    setsolver(m, solver)
-    status = solve(m)
+    JuMP.optimize!(m, solver)
+    status = JuMP.termination_status(m)
 
     include(parsed_args["file"])
-    setsolver(m, solver)
-    status = solve(m)
+    JuMP.optimize!(m, solver)
+    status = JuMP.termination_status(m)
 
     print_result(m, status, parsed_args["file"])
 end
@@ -129,7 +135,7 @@ if isinteractive() == false
     using Juniper
     using Ipopt
     using Cbc
-    using GLPKMathProgInterface
+    #using GLPKMathProgInterface
     #using Gurobi
     #using KNITRO
     main(args)

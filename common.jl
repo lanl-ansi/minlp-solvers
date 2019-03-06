@@ -1,4 +1,3 @@
-using MathProgBase
 
 function parse_commandline()
     s = ArgParseSettings()
@@ -21,28 +20,42 @@ end
 function print_result(m, status, file_path)
     file_name = split(file_path, '/')[end]
 
-    nbin = sum(m.colCat .== :Bin)
-    nint = sum(m.colCat .== :Int)
+    nbin = 0
+    nint = 0 
+
+    for i in 1:JuMP.num_variables(m)
+        vref = JuMP.VariableRef(m, JuMP.MOI.VariableIndex(i)) 
+        JuMP.is_binary(vref) && (nbin += 1; continue)
+        JuMP.is_integer(vref) && (nint += 1; continue)
+    end 
 
     objbound = NaN
     try
-        objbound = getobjbound(m)
+        objbound = JuMP.objective_bound(m)
     catch
-        @warn "the solver does not implement getobjbound"
+        @warn "the solver does not implement objective_bound"
+    end
+
+    
+    solve_time = NaN
+    try
+        solve_time = JuMP.MOI.get(m, MOI.SolveTime())
+    catch
+        warn(LOGGER, "the solver does not provide a solve time.");
     end
 
     data = [
         "DATA",
         file_name,
-        MathProgBase.numvar(m),
+        JuMP.num_variables(m),
         nbin,
         nint,
-        MathProgBase.numconstr(m),
-        getobjectivesense(m),
-        getobjectivevalue(m),
+        JuMP.num_nl_constraints(m),
+        JuMP.objective_sense(m),
+        JuMP.objective_value(m),
         objbound,
         status,
-        getsolvetime(m)
+        solve_time
     ]
 
     println(join(data, ", "))
