@@ -18,7 +18,30 @@ function getsolvetime(m::Model)
     return MOI.get(bm, MOI.SolveTime()) 
 end
 
+
+
 function main(parsed_args)
+    # fill a meta file with all information
+    meta = Dict{Symbol,Any}()
+    meta[:date] = Dates.today() 
+    # remove /src in the end
+    pkg_dir = dirname(pathof(Juniper))[1:end-4]
+    meta[:version] = Pkg.TOML.parsefile(pkg_dir*"/Project.toml")["version"]
+    meta[:julia_version] = string(VERSION)
+    meta[:hash] = Git.head(;dir=pkg_dir)
+    meta[:branch] = Git.branch(;dir=pkg_dir)
+    # display name for BnBVisual: 
+    display_name = "juniper"
+    if parsed_args["processors"] != nothing
+        display_name *= "-p"*parsed_args["processors"]
+    end
+    display_name *= " v"*meta[:version]
+    if meta[:branch] != "master"
+        display_name *= " ("*meta[:branch]*")"
+    end
+    meta[:display] = display_name
+    meta[:settings] = Dict{Symbol,Any}()
+
     nlp_solver_args = Dict{Symbol,Any}()
     nlp_solver = nothing
     nlp_print_level = 0
@@ -26,7 +49,7 @@ function main(parsed_args)
         if parsed_args["print-level"] != nothing
             nlp_print_level = parsed_args["print-level"]
         end
-
+        meta[:settings][:nlp_solver] = "Ipopt"
         nlp_solver = with_optimizer(Ipopt.Optimizer, print_level=nlp_print_level)
     else
         if parsed_args["print-level"] != nothing
@@ -34,7 +57,7 @@ function main(parsed_args)
         else
             nlp_solver_args[:KTR_PARAM_OUTLEV] = 0
         end
-
+        meta[:settings][:nlp_solver] = "Knitro"
         nlp_solver = with_optimizer(Knitro.Optimizer, KTR_PARAM_OUTLEV=nlp_print_level)
     end
 
@@ -44,40 +67,52 @@ function main(parsed_args)
 
     if !parsed_args["no_fp"]
         solver_args[:mip_solver] = with_optimizer(Cbc.Optimizer, logLevel=0)
+        meta[:settings][:mip_solver] = "Cbc"
         if parsed_args["fp_glpk"]
             solver_args[:mip_solver] = with_optimizer(GLPK.Optimizer)
+            meta[:settings][:mip_solver] = "GLPK"
         end
         if parsed_args["fp_grb"]
             solver_args[:mip_solver] = with_optimizer(Gurobi.Optimizer, OutputFlag=0)
+            meta[:settings][:mip_solver] = "Gurobi"
         end
+    else
+        meta[:settings][:mip_solver] = "NONE"
     end
    
     if parsed_args["mu"] != nothing
         solver_args[:gain_mu] = parsed_args["mu"]
+        meta[:settings][:gain_mu] = parsed_args["mu"]
     end
 
     if parsed_args["strong-total-time"] != nothing
        solver_args[:strong_branching_total_time_limit] = parsed_args["strong-total-time"]
+       meta[:settings][:strong_branching_total_time_limit] = parsed_args["strong-total-time"]
     end
 
     if parsed_args["time-limit"] != nothing
         solver_args[:time_limit] = parsed_args["time-limit"]
+        meta[:settings][:time_limit] = parsed_args["time-limit"]
     end
 
     if parsed_args["branch_strategy"] != nothing
         solver_args[:branch_strategy] = Symbol(parsed_args["branch_strategy"])
+        meta[:settings][:branch_strategy] = Symbol(parsed_args["branch_strategy"])
     end
 
     if parsed_args["no_strong_restart"]
         solver_args[:strong_restart] = 0
+        meta[:settings][:strong_restart] = 0
     end
 
     if parsed_args["traverse_strategy"] != nothing
         solver_args[:traverse_strategy] = Symbol(parsed_args["traverse_strategy"])
+        meta[:settings][:traverse_strategy] = Symbol(parsed_args["traverse_strategy"])
     end
 
     if parsed_args["incumbent_constr"]
         solver_args[:incumbent_constr] = true
+        meta[:settings][:incumbent_constr] = true
     end
 
     if parsed_args["debug"]
@@ -96,6 +131,7 @@ function main(parsed_args)
 
     if parsed_args["processors"] != nothing
         solver_args[:processors] = parsed_args["processors"]
+        meta[:settings][:processors] = parsed_args["processors"]
     end
 
     solver = with_optimizer(Juniper.Optimizer, solver_args)
@@ -125,6 +161,10 @@ function main(parsed_args)
         status,
         getsolvetime(m)
     ]
+    # write file only once
+    if parsed_args["meta-file"] != nothing && !isfile(parsed_args["meta-file"])
+        write(parsed_args["meta-file"], JSON.json(meta))
+    end
 
     println(join(data, ", "))
 end
@@ -170,6 +210,8 @@ function parse_commandline_bnb()
             action = :store_true
         "--debug_dir"
             help = "debug folder only if --debug"
+        "--meta-file"
+            help = "path and file name of the meta file"
         "--processors", "-p"
             help = "number of parallel processes to use"
             arg_type = Int
@@ -194,6 +236,10 @@ if isinteractive() == false
     using Ipopt
     using Cbc
     using GLPKMathProgInterface
+    using JSON
+    using Dates
+    using Pkg
+    using Git
     #using Gurobi
     #using KNITRO
     main(args)
