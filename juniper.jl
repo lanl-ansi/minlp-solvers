@@ -2,23 +2,7 @@
 
 using ArgParse, JuMP, MathOptInterface
 
-function solve(m::Model)
-    JuMP.optimize!(m)
-    bm = JuMP.backend(m)
-    return MOI.get(bm, MOI.TerminationStatus()) 
-end 
-
-function internalmodel(m::Model)
-    bm = JuMP.backend(m)
-    return bm.optimizer.model.inner
-end
-
-function getsolvetime(m::Model)
-    bm = JuMP.backend(m)
-    return MOI.get(bm, MOI.SolveTime()) 
-end
-
-
+include("common.jl")
 
 function main(parsed_args)
     # fill a meta file with all information
@@ -44,21 +28,22 @@ function main(parsed_args)
 
     nlp_solver_args = Dict{Symbol,Any}()
     nlp_solver = nothing
-    nlp_print_level = 0
     if !parsed_args["knitro"]
         if parsed_args["print-level"] != nothing
-            nlp_print_level = parsed_args["print-level"]
+            nlp_solver_args[:print_level] = parsed_args["print-level"]
+        else 
+            nlp_solver_args[:print_level] = 0
         end
         meta[:settings][:nlp_solver] = "Ipopt"
-        nlp_solver = with_optimizer(Ipopt.Optimizer, print_level=nlp_print_level)
+        nlp_solver = with_optimizer(Ipopt.Optimizer; nlp_solver_args...)
     else
         if parsed_args["print-level"] != nothing
-            nlp_print_level = parsed_args["print-level"]
+            nlp_solver_args[:KTR_PARAM_OUTLEV] = parsed_args["print-level"]
         else
             nlp_solver_args[:KTR_PARAM_OUTLEV] = 0
         end
         meta[:settings][:nlp_solver] = "Knitro"
-        nlp_solver = with_optimizer(Knitro.Optimizer, KTR_PARAM_OUTLEV=nlp_print_level)
+        nlp_solver = with_optimizer(Knitro.Optimizer; nlp_solver_args...)
     end
 
 
@@ -134,39 +119,29 @@ function main(parsed_args)
         meta[:settings][:processors] = parsed_args["processors"]
     end
 
-    solver = with_optimizer(Juniper.Optimizer, solver_args)
+    #solver = JuniperSolver(nlp_solver; solver_args...)
+
+    solver = with_optimizer(
+        Juniper.Optimizer,
+        nl_solver=nlp_solver;
+        solver_args...
+    )
 
     # julia compilation step
     include("data/ex1223a.jl")
-    set_optimizer(m, solver)
-    optimize!(m)
+    JuMP.optimize!(m, solver)
+    status = JuMP.termination_status(m)
 
     include(parsed_args["file"])
-    set_optimizer(m, solver)
-    status = solve(m)
- 
-    internal = internalmodel(m)
+    JuMP.optimize!(m, solver)
+    status = JuMP.termination_status(m)
 
-    file_name = split(parsed_args["file"],"/")[end]
-    data = [
-        parsed_args["file"],
-        file_name,
-        internal.num_var,
-        internal.nbinvars,
-        internal.nintvars,
-        internal.num_constr,
-        internal.obj_sense,
-        JuMP.objective_value(m),
-        JuMP.objective_bound(m),
-        status,
-        getsolvetime(m)
-    ]
-    # write file only once
+    # write meta file only once
     if parsed_args["meta-file"] != nothing && !isfile(parsed_args["meta-file"])
         write(parsed_args["meta-file"], JSON.json(meta))
     end
 
-    println(join(data, ", "))
+    print_result(m, status, parsed_args["file"])
 end
 
 
@@ -235,11 +210,11 @@ if isinteractive() == false
     using Juniper
     using Ipopt
     using Cbc
-    using GLPKMathProgInterface
     using JSON
     using Dates
     using Pkg
     using Git
+    #using GLPKMathProgInterface
     #using Gurobi
     #using KNITRO
     main(args)
