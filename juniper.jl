@@ -128,6 +128,7 @@ end
 
 if isinteractive() == false
     args = parse_commandline_bnb()
+    using Distributed
     if args["processors"] != nothing
         addprocs(args["processors"])
     end
