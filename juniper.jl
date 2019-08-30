@@ -1,8 +1,10 @@
 #!/usr/bin/env julia
 
-using ArgParse, JuMP, MathOptInterface
+using ArgParse, JuMP
 
 include("common.jl")
+
+using Juniper.MathOptInterface
 
 function main(parsed_args)
     # fill a meta file with all information
@@ -17,11 +19,11 @@ function main(parsed_args)
     # display name for BnBVisual: 
     display_name = "juniper"
     if parsed_args["processors"] != nothing
-        display_name *= "-p"*parsed_args["processors"]
+        display_name = "$(display_name) -p $(parsed_args["processors"])"
     end
-    display_name *= " v"*meta[:version]
+    display_name = " v$(meta[:version])"
     if meta[:branch] != "master"
-        display_name *= " ("*meta[:branch]*")"
+        display_name = " ($(meta[:branch]))"
     end
     meta[:display] = display_name
     meta[:settings] = Dict{Symbol,Any}()
@@ -204,6 +206,7 @@ end
 
 if isinteractive() == false
     args = parse_commandline_bnb()
+    using Distributed
     if args["processors"] != nothing
         addprocs(args["processors"])
     end
