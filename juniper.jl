@@ -1,10 +1,8 @@
 #!/usr/bin/env julia
 
-using ArgParse, JuMP
+using ArgParse
 
 include("common.jl")
-
-using Juniper.MathOptInterface
 
 function main(parsed_args)
     # fill a meta file with all information
@@ -121,8 +119,6 @@ function main(parsed_args)
         meta[:settings][:processors] = parsed_args["processors"]
     end
 
-    #solver = JuniperSolver(nlp_solver; solver_args...)
-
     solver = with_optimizer(
         Juniper.Optimizer,
         nl_solver=nlp_solver;
@@ -131,12 +127,12 @@ function main(parsed_args)
 
     # julia compilation step
     include("data/ex1223a.jl")
-    JuMP.optimize!(m, solver)
-    status = JuMP.termination_status(m)
+    optimize!(m, solver)
+    status = termination_status(m)
 
     include(parsed_args["file"])
-    JuMP.optimize!(m, solver)
-    status = JuMP.termination_status(m)
+    optimize!(m, solver)
+    status = termination_status(m)
 
     # write meta file only once
     if parsed_args["meta-file"] != nothing && !isfile(parsed_args["meta-file"])
@@ -211,6 +207,8 @@ if isinteractive() == false
         addprocs(args["processors"])
     end
     using Juniper
+    using Juniper.MathOptInterface
+    using JuMP
     using Ipopt
     using Cbc
     using JSON
