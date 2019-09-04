@@ -19,9 +19,9 @@ function main(parsed_args)
     if parsed_args["processors"] != nothing
         display_name = "$(display_name) -p $(parsed_args["processors"])"
     end
-    display_name = " v$(meta[:version])"
+    display_name = "$(display_name) v$(meta[:version])"
     if meta[:branch] != "master"
-        display_name = " ($(meta[:branch]))"
+        display_name = "$(display_name) ($(meta[:branch]))"
     end
     meta[:display] = display_name
     meta[:settings] = Dict{Symbol,Any}()
