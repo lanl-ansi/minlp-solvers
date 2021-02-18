@@ -26,39 +26,39 @@ function main(parsed_args)
     meta[:display] = display_name
     meta[:settings] = Dict{Symbol,Any}()
 
-    nlp_solver_args = Dict{Symbol,Any}()
+    nlp_solver_args = Dict{String,Any}()
     nlp_solver = nothing
     if !parsed_args["knitro"]
         if parsed_args["print-level"] != nothing
-            nlp_solver_args[:print_level] = parsed_args["print-level"]
+            nlp_solver_args["print_level"] = parsed_args["print-level"]
         else 
-            nlp_solver_args[:print_level] = 0
+            nlp_solver_args["print_level"] = 0
         end
         meta[:settings][:nlp_solver] = "Ipopt"
-        nlp_solver = with_optimizer(Ipopt.Optimizer; nlp_solver_args...)
+        nlp_solver = optimizer_with_attributes(Ipopt.Optimizer, nlp_solver_args...)
     else
         if parsed_args["print-level"] != nothing
-            nlp_solver_args[:KTR_PARAM_OUTLEV] = parsed_args["print-level"]
+            nlp_solver_args["KTR_PARAM_OUTLEV"] = parsed_args["print-level"]
         else
-            nlp_solver_args[:KTR_PARAM_OUTLEV] = 0
+            nlp_solver_args["KTR_PARAM_OUTLEV"] = 0
         end
         meta[:settings][:nlp_solver] = "Knitro"
-        nlp_solver = with_optimizer(Knitro.Optimizer; nlp_solver_args...)
+        nlp_solver = optimizer_with_attributes(Knitro.Optimizer, nlp_solver_args...)
     end
 
 
-    solver_args = Dict{Symbol,Any}()
-    solver_args[:nl_solver] = nlp_solver
+    solver_args = Dict{String,Any}()
+    solver_args["nl_solver"] = nlp_solver
 
     if !parsed_args["no_fp"]
-        solver_args[:mip_solver] = with_optimizer(Cbc.Optimizer, logLevel=0)
+        solver_args["mip_solver"] = optimizer_with_attributes(Cbc.Optimizer, "logLevel"=>0)
         meta[:settings][:mip_solver] = "Cbc"
         if parsed_args["fp_glpk"]
-            solver_args[:mip_solver] = with_optimizer(GLPK.Optimizer)
+            solver_args["mip_solver"] = optimizer_with_attributes(GLPK.Optimizer)
             meta[:settings][:mip_solver] = "GLPK"
         end
         if parsed_args["fp_grb"]
-            solver_args[:mip_solver] = with_optimizer(Gurobi.Optimizer, OutputFlag=0)
+            solver_args["mip_solver"] = optimizer_with_attributes(Gurobi.Optimizer, "OutputFlag"=>0)
             meta[:settings][:mip_solver] = "Gurobi"
         end
     else
@@ -66,37 +66,37 @@ function main(parsed_args)
     end
    
     if parsed_args["mu"] != nothing
-        solver_args[:gain_mu] = parsed_args["mu"]
+        solver_args["gain_mu"] = parsed_args["mu"]
         meta[:settings][:gain_mu] = parsed_args["mu"]
     end
 
     if parsed_args["strong-total-time"] != nothing
-       solver_args[:strong_branching_total_time_limit] = parsed_args["strong-total-time"]
+       solver_args["strong_branching_total_time_limit"] = parsed_args["strong-total-time"]
        meta[:settings][:strong_branching_total_time_limit] = parsed_args["strong-total-time"]
     end
 
     if parsed_args["time-limit"] != nothing
-        solver_args[:time_limit] = parsed_args["time-limit"]
+        solver_args["time_limit"] = parsed_args["time-limit"]
         meta[:settings][:time_limit] = parsed_args["time-limit"]
     end
 
     if parsed_args["branch_strategy"] != nothing
-        solver_args[:branch_strategy] = Symbol(parsed_args["branch_strategy"])
+        solver_args["branch_strategy"] = Symbol(parsed_args["branch_strategy"])
         meta[:settings][:branch_strategy] = Symbol(parsed_args["branch_strategy"])
     end
 
     if parsed_args["no_strong_restart"]
-        solver_args[:strong_restart] = 0
+        solver_args["strong_restart"] = 0
         meta[:settings][:strong_restart] = 0
     end
 
     if parsed_args["traverse_strategy"] != nothing
-        solver_args[:traverse_strategy] = Symbol(parsed_args["traverse_strategy"])
+        solver_args["traverse_strategy"] = Symbol(parsed_args["traverse_strategy"])
         meta[:settings][:traverse_strategy] = Symbol(parsed_args["traverse_strategy"])
     end
 
     if parsed_args["incumbent_constr"]
-        solver_args[:incumbent_constr] = true
+        solver_args["incumbent_constr"] = true
         meta[:settings][:incumbent_constr] = true
     end
 
@@ -108,30 +108,32 @@ function main(parsed_args)
         if !ispath(debug_dir)
             mkpath(debug_dir)
         end
-        solver_args[:debug] = true
-        solver_args[:debug_write] = true
+        solver_args["debug"] = true
+        solver_args["debug_write"] = true
         instance_name = split(parsed_args["file"],'/')[end][1:end-3] # remove .jl
-        solver_args[:debug_file_path] = debug_dir*"/"*instance_name*".json"
+        solver_args["debug_file_path"] = debug_dir*"/"*instance_name*".json"
     end
 
     if parsed_args["processors"] != nothing
-        solver_args[:processors] = parsed_args["processors"]
+        solver_args["processors"] = parsed_args["processors"]
         meta[:settings][:processors] = parsed_args["processors"]
     end
 
-    solver = with_optimizer(
+    solver = optimizer_with_attributes(
         Juniper.Optimizer,
-        nl_solver=nlp_solver;
+        "nl_solver"=>nlp_solver,
         solver_args...
     )
 
     # julia compilation step
     include("data/ex1223a.jl")
-    optimize!(m, solver)
+    set_optimizer(m, solver)
+    optimize!(m)
     status = termination_status(m)
 
     include(parsed_args["file"])
-    optimize!(m, solver)
+    set_optimizer(m, solver)
+    optimize!(m)
     status = termination_status(m)
 
     # write meta file only once
